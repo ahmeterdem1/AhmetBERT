@@ -24,10 +24,7 @@ class TransformerBlock(layers.Layer):
         self.trainable = trainable
         self.sequence_length = sequence_length
 
-
-
     def call(self, query):
-        #query = tf.repeat(query, repeats=self.num_heads, axis=0)
         attention_value = self.attention(query, query,
                                          attention_mask=tf.ones((query.shape[0] if query.shape[0] is not None else 1, self.num_heads,
                                                                      self.sequence_length, self.sequence_length)))

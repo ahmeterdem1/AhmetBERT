@@ -6,7 +6,7 @@ Yes, GPTs are decoder only. "AhmetGPT" is just a cool name.
 It is not aimed to represent architectural features of the
 actual thing.
 
-# The Model
+## The Model
 
 AhmetBERT, is a BERT variant that I have created just to have
 an encoder that may represent prompts to a chatbot copy of myself.
@@ -16,7 +16,7 @@ each with 8 attention heads and 512 units for their FNNs. It is trained
 on all of the message data from defense blocks I have created for [AhmetGPT](https://github.com/ahmeterdem1/ahmetgpt).
 
 BPE tokenizer with vocabulary size of 30000 is trained on all data gathered
-from all defense blocks. "[START]", "[STOP]", "[PAD]" and "[MASK]" special
+from all defense blocks. "[START]", "[STOP]", "[PAD]", "[MASK]" and "[CLS]" special
 tokens are added to the vocabulary. Whitespace pre-tokenizer is used alongside
 BPE.
 
@@ -32,30 +32,36 @@ that is 2 tokens or less. Special cases are created for these situations
 that favors masking some parts of the message. 
 
 From length 2 to 6, there is ~%50 probability that one of the tokens get masked.
-We stop at 6, because 1/6 is very close to %15.
+We stop at 6, because 1/6 is very close to %15. Effective masking ratio over the
+sequence length of 32 is probably lower than %15 because of the datas specific
+nature given the circumstances.
 
 All sequences are converted to length 32. For prompts, if they are shorter than 32
 tokens, "[PAD]" tokens are appended to the beginning. Otherwise, tokens are popped
 from beginning. "[PAD]", "[START]" and "[STOP]" tokens are never masked when applying 
-masking.
+masking. There is not a single instance of "[CLS]" token in the training and test data.
+This model is designed to be a base model that can be later fine tuned for specific
+purposes.
 
-A total of, 1, epochs are given to the training. Exactly. Around 10 GPU minutes of A100.
+The model is trained for around 10 epochs, computation-wise ~2 GPU hours of L4.
+A batch size of 32 is used. Masked sparse categorical cross entropy is used to
+calculate the loss. Optimizer is chosen to be Adam instead of RMSprop this time.
+The reason is, the dataset is not that big and models training is very slow.
+Adam has momentum and RMSprop does not. Momentum increases the duration that 
+model keeps learning after the dataset "fades out".
 
-The collection of all the data is not enough to train a BERT. After 1 epoch, the
-model reaches its maximum performance, and does not improve any more no matter
-the epoch count. BERTs require a huge amount of data to be trained. WhatsApp
-messages are not enough on their own. 
 
-The model reaches %35 accuracy on the test set. Test set in our case is very
-much powerful, for testing purposes. It is the *chronologically* last %10 of
-all messages. Stacked LSTMs' performance tops at %87.8 with the same data.
-I will publish the LSTM-only encoder soon, and probably, I will build the
-decoder on top of it. Not this BERT. 
+### AhmetBERT 1.0
 
-The model can be downloaded from [here](https://drive.google.com/file/d/1--wx6RgENX2OLjwdKjW7hOjbBzUvms0I/view?usp=sharing).
+Accuracy of this model on the test set reaches over %76. Accuracy is calculated over
+the count of all masked tokens. The model is only trained to learn the masked tokens.
+
+The model can be downloaded from [here](https://drive.google.com/file/d/1-jOd5pTU_RkIAqO92Fr2sLfLnwXatDv2/view?usp=share_link).
 When loading the model, don't forget the import custom layer classes created here.
 You will probably want to use Tensorflow 2.15 and Keras 2.15. These were the
 versions that I have used to train the model with.
+
+You can also find the tokenizer [here](https://drive.google.com/file/d/1xAnL0W9_TuMcS_Gcz4tH537DX0jk-tqo/view?usp=share_link)
 
 
 
